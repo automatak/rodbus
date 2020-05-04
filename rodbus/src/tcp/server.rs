@@ -6,6 +6,7 @@ use tokio::net::TcpListener;
 use tokio::sync::Mutex;
 
 use crate::server::handler::{ServerHandler, ServerHandlerMap};
+use tracing_futures::Instrument;
 
 struct SessionTracker {
     max: usize,
@@ -107,13 +108,22 @@ where
 
         tracing::info!("accepted connection {} from: {}", id, addr);
 
-        tokio::spawn(async move {
-            crate::server::task::SessionTask::new(socket, handlers, rx)
-                .run()
-                .await
-                .ok();
-            tracing::info!("shutdown session: {}", id);
-            tracker.lock().await.remove(id);
-        });
+        tokio::spawn(
+            async move {
+                crate::server::task::SessionTask::new(socket, handlers, rx)
+                    .run()
+                    .await
+                    .ok();
+                tracing::info!("shutdown session: {}", id);
+                tracker.lock().await.remove(id);
+            }
+            .instrument(tracing::span!(
+                tracing::Level::INFO,
+                "session",
+                id,
+                "{}",
+                addr
+            )),
+        );
     }
 }
