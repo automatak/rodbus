@@ -23,7 +23,7 @@ where
     ) -> Result<&[U], ExceptionCode> {
         if let Ok(values) = result {
             if values.len() != count as usize {
-                log::error!(
+                tracing::error!(
                     "ServerHandler returned {} values when {} expected",
                     values.len(),
                     count

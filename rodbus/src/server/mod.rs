@@ -3,6 +3,7 @@ use tokio::net::TcpListener;
 use crate::server::handler::{ServerHandler, ServerHandlerMap};
 use crate::shutdown::TaskHandle;
 use crate::tcp::server::ServerTask;
+use tracing_futures::Instrument;
 
 /// server handling
 pub mod handler;
@@ -50,7 +51,14 @@ pub async fn create_tcp_server_task<T: ServerHandler>(
     listener: TcpListener,
     handlers: ServerHandlerMap<T>,
 ) {
+    let endpoint = listener.local_addr().unwrap();
     ServerTask::new(max_sessions, listener, handlers)
         .run(rx)
+        .instrument(tracing::span!(
+            tracing::Level::INFO,
+            "server",
+            "{}",
+            endpoint
+        ))
         .await
 }
