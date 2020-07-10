@@ -75,14 +75,14 @@ impl From<details::InvalidRange> for details::InvalidRequest {
     }
 }
 
-impl<T> From<crate::async_rs::mpsc::SendError<T>> for Error {
-    fn from(_: crate::async_rs::mpsc::SendError<T>) -> Self {
+impl<T> From<runtime::mpsc::SendError<T>> for Error {
+    fn from(_: runtime::mpsc::SendError<T>) -> Self {
         Error::Shutdown
     }
 }
 
-impl From<crate::async_rs::oneshot::RecvError> for Error {
-    fn from(_: crate::async_rs::oneshot::RecvError) -> Self {
+impl From<runtime::oneshot::RecvError> for Error {
+    fn from(_: runtime::oneshot::RecvError) -> Self {
         Error::Shutdown
     }
 }

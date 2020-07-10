@@ -1,7 +1,7 @@
 #[cfg(feature = "no-panic")]
 use no_panic::no_panic;
 
-use crate::async_rs::traits::{AsyncRead, AsyncReadExt};
+use runtime::traits::{AsyncRead, AsyncReadExt};
 use crate::error::*;
 
 pub(crate) struct ReadBuffer {

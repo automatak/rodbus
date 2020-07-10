@@ -1,7 +1,6 @@
 use std::time::Duration;
 
-use tokio::runtime::Runtime;
-use tokio::sync::{mpsc, oneshot};
+use runtime::{mpsc, oneshot, Runtime};
 
 use crate::client::message::{Promise, Request, RequestDetails};
 use crate::client::requests::read_bits::ReadBits;

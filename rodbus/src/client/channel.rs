@@ -1,12 +1,11 @@
 use std::net::SocketAddr;
 use std::time::Duration;
 
-use tokio::sync::mpsc;
-
 use crate::client::message::Request;
 use crate::client::session::AsyncSession;
 use crate::tcp::client::TcpChannelTask;
 use crate::types::UnitId;
+use runtime::mpsc;
 
 /// Channel from which `AsyncSession` objects can be created to make requests
 pub struct Channel {
@@ -75,7 +74,7 @@ impl Channel {
         connect_retry: Box<dyn ReconnectStrategy + Send>,
     ) -> Self {
         let (handle, task) = Self::create_handle_and_task(addr, max_queued_requests, connect_retry);
-        tokio::spawn(task);
+        runtime::task::spawn(task);
         handle
     }
 

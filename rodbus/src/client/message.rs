@@ -10,7 +10,6 @@ use crate::common::cursor::{ReadCursor, WriteCursor};
 use crate::common::traits::Serialize;
 use crate::types::{Indexed, UnitId};
 use std::time::Duration;
-use tokio::sync::oneshot;
 
 pub(crate) struct Request {
     pub(crate) id: UnitId,
@@ -136,7 +135,7 @@ impl Serialize for RequestDetails {
 }
 
 pub(crate) enum Promise<T> {
-    Channel(oneshot::Sender<Result<T, Error>>),
+    Channel(runtime::oneshot::Sender<Result<T, Error>>),
     Callback(Box<dyn FnOnce(Result<T, Error>) + Send + Sync + 'static>),
 }
 

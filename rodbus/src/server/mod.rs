@@ -1,4 +1,4 @@
-use tokio::net::TcpListener;
+
 
 use crate::server::handler::{ServerHandler, ServerHandlerMap};
 use crate::shutdown::TaskHandle;
@@ -24,11 +24,11 @@ pub(crate) mod validator;
 /// [`create_tcp_server_task`]: fn.create_tcp_server_task.html
 pub fn spawn_tcp_server_task<T: ServerHandler>(
     max_sessions: usize,
-    listener: TcpListener,
+    listener: runtime::net::TcpListener,
     handlers: ServerHandlerMap<T>,
 ) -> TaskHandle {
-    let (tx, rx) = tokio::sync::mpsc::channel(1);
-    let handle = tokio::spawn(create_tcp_server_task(rx, max_sessions, listener, handlers));
+    let (tx, rx) = runtime::mpsc::channel(1);
+    let handle = runtime::task::spawn(create_tcp_server_task(rx, max_sessions, listener, handlers));
     TaskHandle::new(tx, handle)
 }
 
@@ -45,9 +45,9 @@ pub fn spawn_tcp_server_task<T: ServerHandler>(
 ///
 /// [`spawn_tcp_server_task`]: fn.spawn_tcp_server_task.html
 pub async fn create_tcp_server_task<T: ServerHandler>(
-    rx: tokio::sync::mpsc::Receiver<()>,
+    rx: runtime::mpsc::Receiver<()>,
     max_sessions: usize,
-    listener: TcpListener,
+    listener: runtime::net::TcpListener,
     handlers: ServerHandlerMap<T>,
 ) {
     ServerTask::new(max_sessions, listener, handlers)

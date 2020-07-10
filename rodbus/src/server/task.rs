@@ -9,7 +9,7 @@ use crate::server::response::ErrorResponse;
 use crate::server::validator::Validator;
 use crate::tcp::frame::{MBAPFormatter, MBAPParser};
 
-use crate::async_rs::traits::*;
+use runtime::traits::*;
 
 pub(crate) struct SessionTask<T, U>
 where

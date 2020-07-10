@@ -5,8 +5,8 @@ use crate::common::frame::{FrameFormatter, FrameHeader, FramedReader, TxId};
 use crate::error::*;
 use crate::tcp::frame::{MBAPFormatter, MBAPParser};
 
-use crate::async_rs::mpsc;
-use crate::async_rs::traits::*;
+use runtime::mpsc;
+use runtime::traits::*;
 
 /**
 * We always common requests in a TCP session until one of the following occurs
