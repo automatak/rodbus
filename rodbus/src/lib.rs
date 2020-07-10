@@ -196,5 +196,6 @@ pub mod shutdown;
 pub mod types;
 
 // internal modules
+mod async_rs;
 mod common;
 mod tcp;

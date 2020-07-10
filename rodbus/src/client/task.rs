@@ -1,12 +1,12 @@
 use std::time::Duration;
 
-use tokio::prelude::*;
-use tokio::sync::*;
-
 use crate::client::message::Request;
 use crate::common::frame::{FrameFormatter, FrameHeader, FramedReader, TxId};
 use crate::error::*;
 use crate::tcp::frame::{MBAPFormatter, MBAPParser};
+
+use crate::async_rs::mpsc;
+use crate::async_rs::traits::*;
 
 /**
 * We always common requests in a TCP session until one of the following occurs

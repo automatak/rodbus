@@ -75,14 +75,14 @@ impl From<details::InvalidRange> for details::InvalidRequest {
     }
 }
 
-impl<T> From<tokio::sync::mpsc::error::SendError<T>> for Error {
-    fn from(_: tokio::sync::mpsc::error::SendError<T>) -> Self {
+impl<T> From<crate::async_rs::mpsc::SendError<T>> for Error {
+    fn from(_: crate::async_rs::mpsc::SendError<T>) -> Self {
         Error::Shutdown
     }
 }
 
-impl From<tokio::sync::oneshot::error::RecvError> for Error {
-    fn from(_: tokio::sync::oneshot::error::RecvError) -> Self {
+impl From<crate::async_rs::oneshot::RecvError> for Error {
+    fn from(_: crate::async_rs::oneshot::RecvError) -> Self {
         Error::Shutdown
     }
 }
