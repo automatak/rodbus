@@ -4,7 +4,7 @@ use crate::error::Error;
 use crate::types::{AddressRange, BitIterator, Indexed, ReadBitsRange};
 
 pub(crate) enum Promise {
-    Channel(tokio::sync::oneshot::Sender<Result<Vec<Indexed<bool>>, Error>>),
+    Channel(runtime::oneshot::Sender<Result<Vec<Indexed<bool>>, Error>>),
     Callback(Box<dyn FnOnce(Result<BitIterator, Error>) + Send + Sync + 'static>),
 }
 

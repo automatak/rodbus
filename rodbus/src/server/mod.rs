@@ -50,7 +50,7 @@ pub async fn create_tcp_server_task<T: ServerHandler>(
     listener: runtime::net::TcpListener,
     handlers: ServerHandlerMap<T>,
 ) {
-    ServerTask::new(max_sessions, listener, handlers)
-        .run(rx)
+    ServerTask::new(max_sessions, listener, handlers, rx)
+        .run()
         .await
 }

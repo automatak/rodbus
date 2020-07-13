@@ -282,7 +282,7 @@ impl CallbackSession {
     }
 
     async fn send(&mut self, request: Request) {
-        if let Err(tokio::sync::mpsc::error::SendError(x)) =
+        if let Err(runtime::mpsc::SendError(x)) =
             self.inner.request_channel.send(request).await
         {
             x.details.fail(Error::Shutdown);

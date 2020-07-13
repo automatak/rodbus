@@ -6,12 +6,14 @@ use std::net::SocketAddr;
 use runtime::net::TcpListener;
 use runtime::mutex::Mutex;
 
+use futures_util::future::FutureExt;
+
 use crate::server::handler::{ServerHandler, ServerHandlerMap};
 
 struct SessionTracker {
     max: usize,
     id: u64,
-    sessions: BTreeMap<u64, tokio::sync::mpsc::Sender<()>>,
+    sessions: BTreeMap<u64, runtime::mpsc::Sender<()>>,
 }
 
 type SessionTrackerWrapper = Arc<Mutex<Box<SessionTracker>>>;
@@ -35,7 +37,7 @@ impl SessionTracker {
         Arc::new(Mutex::new(Box::new(Self::new(max))))
     }
 
-    pub(crate) fn add(&mut self, sender: tokio::sync::mpsc::Sender<()>) -> u64 {
+    pub(crate) fn add(&mut self, sender: runtime::mpsc::Sender<()>) -> u64 {
         // TODO - this is so ugly. there's a nightly API on BTreeMap that has a remove_first
         if !self.sessions.is_empty() && self.sessions.len() >= self.max {
             let id = *self.sessions.keys().next().unwrap();
@@ -59,6 +61,7 @@ pub(crate) struct ServerTask<T: ServerHandler> {
     listener: TcpListener,
     handlers: ServerHandlerMap<T>,
     tracker: SessionTrackerWrapper,
+    shutdown: runtime::mpsc::Receiver<()>,
 }
 
 impl<T> ServerTask<T>
@@ -69,23 +72,40 @@ where
         max_sessions: usize,
         listener: TcpListener,
         handlers: ServerHandlerMap<T>,
+        shutdown: runtime::mpsc::Receiver<()>,
     ) -> Self {
         Self {
             listener,
             handlers,
             tracker: SessionTracker::wrapped(max_sessions),
+            shutdown
         }
     }
 
-    pub(crate) async fn run(&mut self, mut shutdown: tokio::sync::mpsc::Receiver<()>) {
+    pub(crate) async fn run(&mut self) {
         loop {
-            tokio::select! {
-               _ = shutdown.recv() => {
+            match self.accept().await {
+                Err(_) => {
+                    return;
+                }
+                Ok((stream, addr)) =>  {
+                    self.handle(stream, addr).await
+                }
+            }
+            /*
+            let shutdown = shutdown.recv();
+            let connection = self.listener.accept();
+
+            futures_util::pin_mut!(shutdown);
+            futures_util::pin_mut!(connection);
+
+            match future::select(shutdown, connection).await {
+                future::Either::Left(_) => {
                     log::info!("server shutdown");
                     return; // shutdown signal
-               }
-               result = self.listener.accept() => {
-                   match result {
+                }
+                future::Either::Right((result, _)) => {
+                    match result {
                         Err(err) => {
                             log::error!("error accepting connection: {}", err);
                             return;
@@ -93,16 +113,32 @@ where
                         Ok((socket, addr)) => {
                             self.handle(socket, addr).await
                         }
-                   }
-               }
+                    }
+                }
             }
+        }
+ */
         }
     }
 
-    async fn handle(&self, socket: tokio::net::TcpStream, addr: SocketAddr) {
+    async fn accept(&mut self) -> Result<(runtime::net::TcpStream, SocketAddr), ()> {
+        futures_util::select! {
+             _ = self.shutdown.recv().fuse() => {
+                 Err(())
+             }
+             res = self.listener.accept().fuse() => {
+                 match res {
+                     Ok(x) => Ok(x),
+                     Err(_) => Err(())
+                 }
+             }
+        }
+    }
+
+    async fn handle(&self, socket: runtime::net::TcpStream, addr: SocketAddr) {
         let handlers = self.handlers.clone();
         let tracker = self.tracker.clone();
-        let (tx, rx) = tokio::sync::mpsc::channel(1);
+        let (tx, rx) = runtime::mpsc::channel(1);
 
         let id = self.tracker.lock().await.add(tx);
 

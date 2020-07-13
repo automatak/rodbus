@@ -9,6 +9,8 @@ use crate::server::response::ErrorResponse;
 use crate::server::validator::Validator;
 use crate::tcp::frame::{MBAPFormatter, MBAPParser};
 
+use futures_util::future::FutureExt;
+
 use runtime::traits::*;
 
 pub(crate) struct SessionTask<T, U>
@@ -18,7 +20,7 @@ where
 {
     io: U,
     handlers: ServerHandlerMap<T>,
-    shutdown: tokio::sync::mpsc::Receiver<()>,
+    shutdown: runtime::mpsc::Receiver<()>,
     reader: FramedReader<MBAPParser>,
     writer: MBAPFormatter,
 }
@@ -31,7 +33,7 @@ where
     pub(crate) fn new(
         io: U,
         handlers: ServerHandlerMap<T>,
-        shutdown: tokio::sync::mpsc::Receiver<()>,
+        shutdown: runtime::mpsc::Receiver<()>,
     ) -> Self {
         Self {
             io,
@@ -59,12 +61,13 @@ where
     }
 
     async fn run_one(&mut self) -> Result<(), Error> {
-        tokio::select! {
-            frame = self.reader.next_frame(&mut self.io) => {
-               self.reply_to_request(frame?).await
+
+        futures_util::select! {
+            _ = self.shutdown.recv().fuse() => {
+                Err(crate::error::Error::Shutdown)
             }
-            _ = self.shutdown.recv() => {
-               Err(crate::error::Error::Shutdown)
+            frame = self.reader.next_frame(&mut self.io).fuse() => {
+                self.reply_to_request(frame?).await
             }
         }
     }

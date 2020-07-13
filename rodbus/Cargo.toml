@@ -16,10 +16,12 @@ maintenance = { status = "actively-developed" }
 
 [dependencies]
 runtime = { version = "0.1.1", path = "../runtime" }
-tokio = { version = "^0.2.20", features = ["tcp", "sync", "io-util", "time", "rt-core", "rt-threaded", "macros"]}
+#tokio = { version = "^0.2.20", features = ["tcp", "sync", "io-util", "time", "rt-core", "rt-threaded", "macros"]}
 log = "0.4"
 no-panic = { version = "0.1", optional = true }
+futures-util = "0.3.5"
 
 [dev-dependencies]
+tokio = { version = "^0.2.20", features = ["tcp", "sync", "io-util", "time", "rt-core", "rt-threaded", "macros"]}
 tokio-test = "0.2"
 simple_logger = "1.3"

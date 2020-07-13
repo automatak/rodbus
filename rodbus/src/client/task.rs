@@ -85,16 +85,16 @@ impl ClientLoop {
 
         io.write_all(bytes).await?;
 
-        let deadline = tokio::time::Instant::now() + request.timeout;
+        let deadline = std::time::Instant::now() + request.timeout;
 
         // loop until we get a response with the correct tx id or we timeout
         let response = loop {
-            let frame = match tokio::time::timeout_at(deadline, self.reader.next_frame(io)).await {
-                Err(_) => {
+            let frame = match runtime::time::timeout_at(deadline, self.reader.next_frame(io)).await {
+                None => {
                     request.details.fail(Error::ResponseTimeout);
                     return Ok(());
                 }
-                Ok(result) => match result {
+                Some(result) => match result {
                     Ok(frame) => frame,
                     Err(err) => {
                         request.details.fail(err);
@@ -120,16 +120,16 @@ impl ClientLoop {
     }
 
     pub(crate) async fn fail_requests_for(&mut self, duration: Duration) -> Result<(), ()> {
-        let deadline = tokio::time::Instant::now() + duration;
+        let deadline = std::time::Instant::now() + duration;
 
         loop {
-            match tokio::time::timeout_at(deadline, self.rx.recv()).await {
+            match runtime::time::timeout_at(deadline, self.rx.recv()).await {
                 // timeout occurred
-                Err(_) => return Ok(()),
+                None => return Ok(()),
                 // channel was closed
-                Ok(None) => return Err(()),
+                Some(None) => return Err(()),
                 // fail request, do another iteration
-                Ok(Some(request)) => request.details.fail(Error::NoConnection),
+                Some(Some(request)) => request.details.fail(Error::NoConnection),
             }
         }
     }
@@ -147,13 +147,13 @@ mod tests {
     use crate::types::{AddressRange, Indexed, UnitId};
 
     struct ClientFixture {
-        tx: tokio::sync::mpsc::Sender<Request>,
+        tx: runtime::mpsc::Sender<Request>,
         client: ClientLoop,
     }
 
     impl ClientFixture {
         fn new() -> Self {
-            let (tx, rx) = tokio::sync::mpsc::channel(10);
+            let (tx, rx) = runtime::mpsc::channel(10);
             Self {
                 tx,
                 client: ClientLoop::new(rx),
@@ -164,8 +164,8 @@ mod tests {
             &mut self,
             range: AddressRange,
             timeout: Duration,
-        ) -> tokio::sync::oneshot::Receiver<Result<Vec<Indexed<bool>>, Error>> {
-            let (tx, rx) = tokio::sync::oneshot::channel();
+        ) -> runtime::oneshot::Receiver<Result<Vec<Indexed<bool>>, Error>> {
+            let (tx, rx) = runtime::oneshot::channel();
             let details = RequestDetails::ReadCoils(ReadBits::new(
                 range.of_read_bits().unwrap(),
                 crate::client::requests::read_bits::Promise::Channel(tx),

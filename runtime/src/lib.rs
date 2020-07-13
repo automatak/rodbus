@@ -13,14 +13,15 @@ pub mod oneshot {
 
 /// Abstraction over mpsc channels
 pub mod mpsc {
-    pub type RecvError = tokio::sync::mpsc::error::RecvError;
-    pub type SendError<T> = tokio::sync::mpsc::error::SendError<T>;
+    pub use tokio::sync::mpsc::error::RecvError;
+    pub use tokio::sync::mpsc::error::SendError;
     pub type Receiver<T> = tokio::sync::mpsc::Receiver<T>;
     pub type Sender<T> = tokio::sync::mpsc::Sender<T>;
     pub fn channel<T>(buffer: usize) -> (Sender<T>, Receiver<T>) {
         tokio::sync::mpsc::channel(buffer)
     }
 }
+
 pub mod mutex {
     pub type Mutex<T> = tokio::sync::Mutex<T>;
 }
@@ -42,6 +43,12 @@ pub mod task {
         T::Output: Send + 'static,
     {
         tokio::spawn(task)
+    }
+}
+
+pub mod time {
+    pub async fn timeout_at<T>(deadline: std::time::Instant, future: T) -> Option<T::Output> where T: std::future::Future {
+        tokio::time::timeout_at(deadline.into(), future).await.ok()
     }
 }
 
