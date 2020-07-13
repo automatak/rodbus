@@ -92,32 +92,6 @@ where
                     self.handle(stream, addr).await
                 }
             }
-            /*
-            let shutdown = shutdown.recv();
-            let connection = self.listener.accept();
-
-            futures_util::pin_mut!(shutdown);
-            futures_util::pin_mut!(connection);
-
-            match future::select(shutdown, connection).await {
-                future::Either::Left(_) => {
-                    log::info!("server shutdown");
-                    return; // shutdown signal
-                }
-                future::Either::Right((result, _)) => {
-                    match result {
-                        Err(err) => {
-                            log::error!("error accepting connection: {}", err);
-                            return;
-                        }
-                        Ok((socket, addr)) => {
-                            self.handle(socket, addr).await
-                        }
-                    }
-                }
-            }
-        }
- */
         }
     }
 
