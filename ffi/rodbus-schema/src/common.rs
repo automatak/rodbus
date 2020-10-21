@@ -40,9 +40,9 @@ impl CommonDefinitions {
 fn build_bit(lib: &mut LibraryBuilder) -> Result<NativeStructHandle, BindingError> {
     let bit = lib.declare_native_struct("Bit")?;
     lib.define_native_struct(&bit)?
-        .add("index", Type::Uint16, "index of bit")?
+        .add("index", Type::Uint16, "index of the bit")?
         .add("value", Type::Bool, "value of the bit")?
-        .doc("index/value tuple of a bit type")?
+        .doc("index/value tuple for a bit type")?
         .build()
 }
 
@@ -51,7 +51,7 @@ fn build_register(lib: &mut LibraryBuilder) -> Result<NativeStructHandle, Bindin
     lib.define_native_struct(&bit)?
         .add("index", Type::Uint16, "index of register")?
         .add("value", Type::Uint16, "value of the register")?
-        .doc("index/value tuple of a register type")?
+        .doc("index/value tuple for a register type")?
         .build()
 }
 
@@ -59,9 +59,9 @@ fn build_address_range(lib: &mut LibraryBuilder) -> Result<NativeStructHandle, B
     let info = lib.declare_native_struct("AddressRange")?;
     let info = lib
         .define_native_struct(&info)?
-        .add("start", Type::Uint16, "Starting address of the range")?
-        .add("count", Type::Uint16, "Number of addresses in the range")?
-        .doc("Range of 16-bit addresses")?
+        .add("start", Type::Uint16, "starting address of the range")?
+        .add("count", Type::Uint16, "number of addresses in the range")?
+        .doc("range of 16-bit addresses")?
         .build()?;
 
     Ok(info)
@@ -75,9 +75,9 @@ fn build_request_param(lib: &mut LibraryBuilder) -> Result<NativeStructHandle, B
         .add(
             "timeout_ms",
             Type::Uint32,
-            "Response timeout for the request in milliseconds",
+            "response timeout for the request in milliseconds",
         )?
-        .doc("Address and timeout parameters for requests")?
+        .doc("address and timeout parameters for requests")?
         .build()?;
 
     Ok(param)
@@ -100,7 +100,7 @@ fn build_error_info(
         .add(
             "exception",
             Type::Enum(exception.clone()),
-            "exception code returned by the server when status == Exception",
+            "Exception code returned by the server when {struct:ErrorInfo.summary} == {enum:Status.Exception}",
         )?
         .add(
             "raw_exception",

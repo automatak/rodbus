@@ -7,6 +7,7 @@ use oo_bindgen::{BindingError, LibraryBuilder};
 use crate::common::CommonDefinitions;
 use oo_bindgen::callback::OneTimeCallbackHandle;
 use oo_bindgen::collection::CollectionHandle;
+use oo_bindgen::doc::doc;
 
 pub(crate) fn build(
     lib: &mut LibraryBuilder,
@@ -25,11 +26,11 @@ pub(crate) fn build(
         .param(
             "max_queued_requests",
             Type::Uint16,
-            "Maximum number of requests to queue before failing the next request",
+            "maximum number of requests to queue before failing the next request",
         )?
         .return_type(ReturnType::Type(
             Type::ClassRef(channel.clone()),
-            "pointer to the created channel or NULL if an error occurred".into(),
+            "pointer to the created channel or {null} if an error occurred".into(),
         ))?
         .doc("create a new tcp channel instance")?
         .build()?;
@@ -40,10 +41,10 @@ pub(crate) fn build(
         .param(
             "channel",
             Type::ClassRef(channel.clone()),
-            "channel to destroy",
+            "{class:Channel} instance to destroy",
         )?
         .return_type(ReturnType::Void)?
-        .doc("destroy a channel instance")?
+        .doc("destroy a {class:Channel} instance")?
         .build()?;
 
     let bit_read_callback = build_bit_read_callback(lib, common)?;
@@ -162,7 +163,7 @@ fn build_async_write_single_fn(
         .param(
             "channel",
             Type::ClassRef(channel.clone()),
-            "channel on which to perform the write operation",
+            "{class:Channel} on which to perform the write operation",
         )?
         .param(
             "value",
@@ -232,7 +233,7 @@ fn build_async_read_fn(
         .param(
             "channel",
             Type::ClassRef(channel.clone()),
-            "channel on which to perform the read",
+            "{class:Channel} on which to perform the read",
         )?
         .param(
             "range",
@@ -290,11 +291,11 @@ fn build_register_read_callback(
     let read_callback = lib
         .define_one_time_callback(
             "RegisterReadCallback",
-            "Callback for reading holding or input registers",
+            "callback for reading holding or input registers",
         )?
         .callback(
             "on_complete",
-            "Called when the operation is complete or fails",
+            "called when the operation is complete or fails",
         )?
         .param("result", Type::Struct(read_result), "result")?
         .return_type(ReturnType::void())?
@@ -310,11 +311,11 @@ fn build_result_only_callback(
 ) -> Result<OneTimeCallbackHandle, BindingError> {
     lib.define_one_time_callback(
         "ResultCallback",
-        "Callback type for anything that doesn't return a value, e.g. write operations",
+        "callback type for anything that doesn't return a value, e.g. write operations",
     )?
     .callback(
         "on_complete",
-        "Called when the operation is complete or fails",
+        "called when the operation is complete or fails",
     )?
     .param(
         "result",
@@ -332,8 +333,9 @@ fn build_callback_struct(
     iterator_type: &IteratorHandle,
     error_info: &NativeStructHandle,
 ) -> Result<NativeStructHandle, BindingError> {
+    let name = format!("{}ReadResult", item_type.declaration.name);
     let callback_struct =
-        lib.declare_native_struct(format!("{}ReadResult", item_type.declaration.name).as_str())?;
+        lib.declare_native_struct(name.as_str())?;
     let callback_struct = lib
         .define_native_struct(&callback_struct)?
         .add(
@@ -344,7 +346,7 @@ fn build_callback_struct(
         .add(
             "iterator",
             Type::Iterator(iterator_type.clone()),
-            "iterator valid when result.summary == Ok",
+            doc("{iterator} over values").warning("only valid when {struct:ErrorInfo.summary} == {enum:Status.Ok}")
         )?
         .doc("Result type returned when asynchronous operation completes or fails")?
         .build()?;
@@ -357,24 +359,33 @@ fn build_list(
     name: &str,
     value_type: Type,
 ) -> Result<CollectionHandle, BindingError> {
-    let list_class = lib.declare_class(&format!("{}List", name))?;
+
+    let list_class_name = format!("{}List", name);
+    let create_function_name =  format!("{}_list_create", name.to_lowercase());
+    let add_function_name = format!("{}_list_add", name.to_lowercase());
+    let destroy_function_name =  format!("{}_list_destroy", name.to_lowercase());
+
+
+    let list_class = lib.declare_class(&list_class_name)?;
 
     let create_fn = lib
-        .declare_native_function(&format!("{}_list_create", name.to_lowercase()))?
+        .declare_native_function(create_function_name.as_str())?
         .param(
             "size_hint",
             Type::Uint32,
-            "Starting size of the list. Can be used to avoid multiple allocations if you already know how many items you're going to add.",
+            "starting size of the list used to avoid multiple allocations if you already know how many items you're going to add"
         )?
         .return_type(ReturnType::new(
             Type::ClassRef(list_class.clone()),
             "created list",
         ))?
-        .doc(format!("create a {} list", name).as_str())?
+        .doc(
+            doc(format!("create a {} list", name).as_str())
+        )?
         .build()?;
 
     let destroy_fn = lib
-        .declare_native_function(&format!("{}_list_destroy", name.to_lowercase()))?
+        .declare_native_function(destroy_function_name.as_str())?
         .param(
             "list",
             Type::ClassRef(list_class.clone()),
@@ -385,11 +396,11 @@ fn build_list(
         .build()?;
 
     let add_fn = lib
-        .declare_native_function(&format!("{}_list_add", name.to_lowercase()))?
+        .declare_native_function(&add_function_name)?
         .param(
             "list",
             Type::ClassRef(list_class),
-            "list to which to add the item",
+            format!("{{class:{}}} to which to add the item", list_class_name),
         )?
         .param("item", value_type, "item to add to the list")?
         .return_type(ReturnType::void())?
