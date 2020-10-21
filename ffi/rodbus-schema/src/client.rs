@@ -334,8 +334,7 @@ fn build_callback_struct(
     error_info: &NativeStructHandle,
 ) -> Result<NativeStructHandle, BindingError> {
     let name = format!("{}ReadResult", item_type.declaration.name);
-    let callback_struct =
-        lib.declare_native_struct(name.as_str())?;
+    let callback_struct = lib.declare_native_struct(name)?;
     let callback_struct = lib
         .define_native_struct(&callback_struct)?
         .add(
@@ -346,7 +345,8 @@ fn build_callback_struct(
         .add(
             "iterator",
             Type::Iterator(iterator_type.clone()),
-            doc("{iterator} over values").warning("only valid when {struct:ErrorInfo.summary} == {enum:Status.Ok}")
+            doc("{iterator} over values")
+                .warning("only valid when {struct:ErrorInfo.summary} == {enum:Status.Ok}"),
         )?
         .doc("Result type returned when asynchronous operation completes or fails")?
         .build()?;
@@ -359,17 +359,15 @@ fn build_list(
     name: &str,
     value_type: Type,
 ) -> Result<CollectionHandle, BindingError> {
-
     let list_class_name = format!("{}List", name);
-    let create_function_name =  format!("{}_list_create", name.to_lowercase());
+    let create_function_name = format!("{}_list_create", name.to_lowercase());
     let add_function_name = format!("{}_list_add", name.to_lowercase());
-    let destroy_function_name =  format!("{}_list_destroy", name.to_lowercase());
-
+    let destroy_function_name = format!("{}_list_destroy", name.to_lowercase());
 
     let list_class = lib.declare_class(&list_class_name)?;
 
     let create_fn = lib
-        .declare_native_function(create_function_name.as_str())?
+        .declare_native_function(create_function_name)?
         .param(
             "size_hint",
             Type::Uint32,
@@ -380,19 +378,19 @@ fn build_list(
             "created list",
         ))?
         .doc(
-            doc(format!("create a {} list", name).as_str())
+            doc(format!("create a {} list", name))
         )?
         .build()?;
 
     let destroy_fn = lib
-        .declare_native_function(destroy_function_name.as_str())?
+        .declare_native_function(destroy_function_name)?
         .param(
             "list",
             Type::ClassRef(list_class.clone()),
             "list to destroy",
         )?
         .return_type(ReturnType::void())?
-        .doc(format!("destroy a {} list", name).as_str())?
+        .doc(format!("destroy a {} list", name))?
         .build()?;
 
     let add_fn = lib

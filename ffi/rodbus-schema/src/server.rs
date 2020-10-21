@@ -96,7 +96,7 @@ pub(crate) fn build_add_fn(
 ) -> Result<NativeFunctionHandle, BindingError> {
     let spaced_name = snake_name.replace("_", " ");
 
-    lib.declare_native_function(&format!("database_add_{}", snake_name))?
+    lib.declare_native_function(format!("database_add_{}", snake_name))?
         .param(
             "database",
             Type::ClassRef(db.clone()),
@@ -105,18 +105,18 @@ pub(crate) fn build_add_fn(
         .param(
             "index",
             Type::Uint16,
-            format!("address of the {}", spaced_name).as_str(),
+            format!("address of the {}", spaced_name),
         )?
         .param(
             "value",
             value_type,
-            format!("initial value of the {}", spaced_name).as_str(),
+            format!("initial value of the {}", spaced_name),
         )?
         .return_type(ReturnType::Type(
             Type::Bool,
             "true if the value is new, false otherwise".into(),
         ))?
-        .doc(format!("add a new {} to the database", spaced_name).as_str())?
+        .doc(format!("add a new {} to the database", spaced_name))?
         .build()
 }
 
@@ -127,7 +127,7 @@ pub(crate) fn build_delete_fn(
 ) -> Result<NativeFunctionHandle, BindingError> {
     let spaced_name = snake_name.replace("_", " ");
 
-    lib.declare_native_function(&format!("database_delete_{}", snake_name))?
+    lib.declare_native_function(format!("database_delete_{}", snake_name))?
         .param(
             "database",
             Type::ClassRef(db.clone()),
@@ -136,13 +136,16 @@ pub(crate) fn build_delete_fn(
         .param(
             "index",
             Type::Uint16,
-            format!("address of the {}", spaced_name).as_str(),
+            format!("address of the {}", spaced_name),
         )?
         .return_type(ReturnType::Type(
             Type::Bool,
             "true if the address existed and was removed, false otherwise".into(),
         ))?
-        .doc(format!("remove a {} address from the database", spaced_name).as_str())?
+        .doc(format!(
+            "remove a {} address from the database",
+            spaced_name
+        ))?
         .build()
 }
 
@@ -154,7 +157,7 @@ pub(crate) fn build_update_fn(
 ) -> Result<NativeFunctionHandle, BindingError> {
     let spaced_name = snake_name.replace("_", " ");
 
-    lib.declare_native_function(&format!("database_update_{}", snake_name))?
+    lib.declare_native_function(format!("database_update_{}", snake_name))?
         .param(
             "database",
             Type::ClassRef(db.clone()),
@@ -163,24 +166,21 @@ pub(crate) fn build_update_fn(
         .param(
             "index",
             Type::Uint16,
-            format!("address of the {}", spaced_name).as_str(),
+            format!("address of the {}", spaced_name),
         )?
         .param(
             "value",
             value_type,
-            format!("new value of the {}", spaced_name).as_str(),
+            format!("new value of the {}", spaced_name),
         )?
         .return_type(ReturnType::Type(
             Type::Bool,
             "true if the address is defined, false otherwise".into(),
         ))?
-        .doc(
-            format!(
-                "update the current value of a {} in the database",
-                spaced_name
-            )
-            .as_str(),
-        )?
+        .doc(format!(
+            "update the current value of a {} in the database",
+            spaced_name
+        ))?
         .build()
 }
 

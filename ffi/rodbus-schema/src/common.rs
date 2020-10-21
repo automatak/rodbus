@@ -118,9 +118,9 @@ fn build_iterator(
     value_type: &NativeStructHandle,
 ) -> Result<IteratorHandle, BindingError> {
     let base_name = value_type.declaration.name.clone();
-    let iterator = lib.declare_class(&format!("{}Iterator", base_name))?;
+    let iterator = lib.declare_class(format!("{}Iterator", base_name))?;
     let iterator_next_fn = lib
-        .declare_native_function(&format!("next_{}", base_name.to_lowercase()))?
+        .declare_native_function(format!("next_{}", base_name.to_lowercase()))?
         .param("it", Type::ClassRef(iterator), "iterator")?
         .return_type(ReturnType::new(
             Type::StructRef(value_type.declaration()),
